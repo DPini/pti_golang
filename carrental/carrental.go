@@ -69,6 +69,7 @@ func handleNewOrder(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleListOrders(w http.ResponseWriter, r *http.Request) {
+    var lines []Order
     file, err := os.Open("rentals.csv")
     if err!=nil {
     json.NewEncoder(w).Encode(err)
@@ -79,9 +80,13 @@ func handleListOrders(w http.ResponseWriter, r *http.Request) {
         record, err := reader.Read()
         if err == io.EOF {
                 break
-            }
-            fmt.Fprintf(w, "The first value is %q", record[0])
+        }
+            //fmt.Fprintf(w, "The first value is %q", record[0])
+        lines = append(lines, Order{CarMaker: record[0], CarModel: record[1],
+        NDays: strconv.Atoi(record[2]), NUnits: strconv.Atoi(record[3]),
+         Price: strconv.Atoi(record[4]) })
     }
+        json.NewEncoder(w).Encode(lines)
 }
 
 func writeOrderToFile(w http.ResponseWriter, o Order) {
