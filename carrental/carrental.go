@@ -9,6 +9,9 @@ import (
     "io"
     "io/ioutil"
     "math/rand"
+    "encoding/csv"
+    "os"
+    "strconv"
 )
 
 type OrderRequest struct {
@@ -61,6 +64,7 @@ func handleNewOrder(w http.ResponseWriter, r *http.Request) {
     } else {
 	preu := rand.Intn(100)*requestMessage.NDays*requestMessage.NUnits
         res := Order{OrderData: requestMessage, Price: preu}
+        writeOrderToFile(w,res)
         json.NewEncoder(w).Encode(res)
     }
 
@@ -68,6 +72,20 @@ func handleNewOrder(w http.ResponseWriter, r *http.Request) {
 
 func handleListOrders(w http.ResponseWriter, r *http.Request) {
 
+}
+
+func writeOrderToFile(w http.ResponseWriter, o Order) {
+    file, err := os.OpenFile("rentals.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+    if err!=nil {
+        json.NewEncoder(w).Encode(err)
+        return
+    }
+    writer := csv.NewWriter(file)
+    var data1 = []string{o.OrderData.CarMaker,o.OrderData.CarModel,
+    strconv.Itoa(o.OrderData.NDays),strconv.Itoa(o.OrderData.NUnits),strconv.Itoa(o.Price)}
+    writer.Write(data1)
+    writer.Flush()
+    file.Close()
 }
 
 /*
