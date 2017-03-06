@@ -12,19 +12,17 @@ import (
     "encoding/csv"
     "os"
     "strconv"
+    "bufio"
 )
 
-type OrderRequest struct {
+type Order struct {
     CarMaker string
     CarModel string
     NDays int
     NUnits int
-}
-
-type Order struct {
-    OrderData OrderRequest
     Price int
 }
+
 
 func main() {
 
@@ -47,7 +45,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 
 func handleNewOrder(w http.ResponseWriter, r *http.Request) {
-    var requestMessage OrderRequest
+    var requestMessage Order
     body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
     if err != nil {
         panic(err)
@@ -62,16 +60,28 @@ func handleNewOrder(w http.ResponseWriter, r *http.Request) {
             panic(err)
         }
     } else {
-	preu := rand.Intn(100)*requestMessage.NDays*requestMessage.NUnits
-        res := Order{OrderData: requestMessage, Price: preu}
-        writeOrderToFile(w,res)
-        json.NewEncoder(w).Encode(res)
+	requestMessage.Price = rand.Intn(100)*requestMessage.NDays*requestMessage.NUnits
+        //res := Order{OrderData: requestMessage, Price: preu}
+        writeOrderToFile(w,requestMessage)
+        json.NewEncoder(w).Encode(requestMessage)
     }
 
 }
 
 func handleListOrders(w http.ResponseWriter, r *http.Request) {
-
+    file, err := os.Open("rentals.csv")
+    if err!=nil {
+    json.NewEncoder(w).Encode(err)
+    return
+    }
+    reader := csv.NewReader(bufio.NewReader(file))
+    for {
+        record, err := reader.Read()
+        if err == io.EOF {
+                break
+            }
+            fmt.Fprintf(w, "The first value is %q", record[0])
+    }
 }
 
 func writeOrderToFile(w http.ResponseWriter, o Order) {
@@ -81,8 +91,8 @@ func writeOrderToFile(w http.ResponseWriter, o Order) {
         return
     }
     writer := csv.NewWriter(file)
-    var data1 = []string{o.OrderData.CarMaker,o.OrderData.CarModel,
-    strconv.Itoa(o.OrderData.NDays),strconv.Itoa(o.OrderData.NUnits),strconv.Itoa(o.Price)}
+    var data1 = []string{o.CarMaker,o.CarModel,
+    strconv.Itoa(o.NDays),strconv.Itoa(o.NUnits),strconv.Itoa(o.Price)}
     writer.Write(data1)
     writer.Flush()
     file.Close()
