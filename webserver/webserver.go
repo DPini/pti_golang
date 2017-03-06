@@ -5,7 +5,13 @@ import (
     "log"
     "net/http"
     "github.com/gorilla/mux"
+    "encoding/json"
 )
+
+type ResponseMessage struct {
+    Field1 string
+    Field2 string
+}
 
 func main() {
 
@@ -23,5 +29,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func endpointFunc(w http.ResponseWriter, r *http.Request) {
     vars := mux.Vars(r)
     param := vars["param"]
-    fmt.Fprintln(w, "You are calling with param:", param)
+    res := ResponseMessage{Field1: "Text1", Field2: param}
+    json.NewEncoder(w).Encode(res)
 }
+
