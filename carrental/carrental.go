@@ -39,6 +39,14 @@ router.HandleFunc("/endpoint2/{param}", endpointFunc2JSONInput)
 log.Fatal(http.ListenAndServe(":8080", router))
 }
 
+func MyAtoi( s string ) int {
+   res, err := strconv.Atoi(s)
+   if err != nil {
+      panic(err)
+   }
+   return res
+}
+
 func Index(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintln(w, "Service OK")
 }
@@ -83,8 +91,8 @@ func handleListOrders(w http.ResponseWriter, r *http.Request) {
         }
             //fmt.Fprintf(w, "The first value is %q", record[0])
         lines = append(lines, Order{CarMaker: record[0], CarModel: record[1],
-        NDays: strconv.Atoi(record[2]), NUnits: strconv.Atoi(record[3]),
-         Price: strconv.Atoi(record[4]) })
+        NDays: MyAtoi(record[2]), NUnits: MyAtoi(record[3]),
+         Price: MyAtoi(record[4]) })
     }
         json.NewEncoder(w).Encode(lines)
 }
